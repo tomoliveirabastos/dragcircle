@@ -1,0 +1,121 @@
+<style>
+    canvas{
+        cursor:grab;
+    }
+</style>
+<body style="background-color:black"> 
+    <canvas width="600" height="600" style="border: 1px white solid"> </canvas>
+</body>
+<script>
+    (function(){
+        let canvas = document.querySelector('canvas');
+        let ctx = canvas.getContext('2d');
+        class Ball{
+            constructor(x = 50, y = 50, radius = 20){
+                this.x = x;
+                this.y = y;
+                this.radius = radius;
+                this.vx = 0;
+                this.vy = 0;
+                this.color = "#00f";
+                this.held = false;
+            }
+            render(){
+                ctx.beginPath();
+                ctx.arc(
+                    ball.x,
+                    ball.y,
+                    ball.radius,
+                    0,
+                    Math.PI * 2,
+                );
+                ctx.closePath();
+                ctx.strokeStyle = "white";
+                ctx.stroke();
+            }
+        }
+        let ball = new Ball();
+        
+        class MouseMovement{
+            constructor(){
+                this.ctX = 0;
+                this.ctY = 0;
+                this.hypotenusa = 0;
+                this.startPosX = 0;
+            }
+        }
+        let mouseMovement = new MouseMovement();
+
+        class Mundo{
+            constructor(){
+                this.gravity = 0.05;
+                this.force = -0.8;
+            }
+            to_observer_all_methods(){
+                ctx.clearRect(0,0,canvas.width,canvas.height);
+                this.active_gravity();
+                this.ball_collide_floor();
+                
+            }
+            active_gravity(){
+                if(ball.held !== true){
+                    ball.vy += this.gravity;
+                    ball.y += ball.vy;
+                    ball.x += ball.vx;
+                }
+            }
+            ball_collide_floor(){
+                if(ball.y + ball.radius > canvas.height){
+                    ball.y = canvas.height - ball.radius; 
+                    ball.vy *= mundo.force;
+                }
+                this.ball_collide_wall();
+            }
+            ball_collide_wall(){
+                if(ball.x - ball.radius < 0 || ball.x + ball.radius > canvas.width){
+                    ball.x  = ball.x - ball.radius < 0 ? ball.radius : canvas.width - ball.radius;
+                    ball.vx *= mundo.force;
+                }
+            }
+            click_ball(param){
+                if(mouseMovement.hypotenusa < ball.radius){
+                    ball.held = param;
+                }
+            }
+        }
+        let mundo = new Mundo();
+
+        let loop = ()=>{
+            mundo.to_observer_all_methods();
+            ball.render();
+            window.requestAnimationFrame(loop, canvas);
+        };
+        canvas.addEventListener('mousedown', (e)=>{
+            mouseMovement.ctX = ball.x - e.offsetX;
+            mouseMovement.ctY = ball.y - e.offsetY;
+            mouseMovement.startPosX = e.offsetX;
+            mouseMovement.hypotenusa = Math.sqrt(mouseMovement.ctX * mouseMovement.ctX + mouseMovement.ctY * mouseMovement.ctY );
+            mundo.click_ball(true);
+        }, false);
+
+        canvas.addEventListener('mouseup', (e) =>{
+            mundo.click_ball(false);
+        }, false);
+
+        canvas.addEventListener('mousemove', (e)=>{
+            if(ball.held){
+                ball.x = e.offsetX;
+                ball.y = e.offsetY;
+                let b = (e)=>{
+                    let to;
+                    e.offsetX < mouseMovement.startPosX ? to = -mundo.gravity : to = mundo.gravity;
+                    return to;
+                };
+
+                ball.vx += b(e);
+            }
+        }, false);
+
+        loop();
+    }());
+</script>
